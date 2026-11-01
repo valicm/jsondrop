@@ -1,6 +1,6 @@
 {
   "name": "@jsondrop/drupal",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Drupal core entity types and helpers (decoupled_router, menus, views, images) for @jsondrop/core.",
   "keywords": [
     "drupal",
@@ -44,7 +44,7 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "peerDependencies": {
-    "@jsondrop/core": "^0.1.0"
+    "@jsondrop/core": "^0.1.1"
   },
   "devDependencies": {
     "@jsondrop/core": "*"
