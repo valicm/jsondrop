@@ -1,0 +1,44 @@
+name: Release
+
+# On main, changesets either opens a "Version packages" pull request (when
+# there are changesets to release) or, once that PR is merged, publishes the
+# new versions to npm.
+#
+# Publishing uses npm trusted publishing (OIDC): no npm token is stored.
+# Each package must have this repository and workflow (release.yml) set as
+# its trusted publisher on npmjs.com, which npm allows only after the
+# package's first, manual publish.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          # Node 24 ships npm 11, which trusted publishing needs (11.5.1+).
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - uses: changesets/action@v1
+        with:
+          version: npx changeset version
+          publish: npm run release
+          title: Version packages
+          commit: Version packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
