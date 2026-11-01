@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "customConditions": [
+      "@jsondrop/source"
+    ]
+  },
+  "include": [
+    "packages/*/src",
+    "packages/*/test"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "name": "@jsondrop/commerce",
+  "version": "0.0.0",
+  "description": "Drupal Commerce types and a commerce_api client (cart, checkout, payment) for @jsondrop/core.",
+  "keywords": [
+    "drupal",
+    "drupal-commerce",
+    "commerce_api",
+    "jsonapi",
+    "decoupled",
+    "headless",
+    "typescript",
+    "cart",
+    "checkout"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Valentino Međimorec",
+    "url": "https://github.com/valicm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/valicm/jsondrop.git",
+    "directory": "packages/commerce"
+  },
+  "homepage": "https://github.com/valicm/jsondrop/tree/main/packages/commerce#readme",
+  "bugs": {
+    "url": "https://github.com/valicm/jsondrop/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "@jsondrop/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "peerDependencies": {
+    "@jsondrop/core": "^0",
+    "@jsondrop/drupal": "^0"
+  },
+  "devDependencies": {
+    "@jsondrop/core": "*",
+    "@jsondrop/drupal": "*"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

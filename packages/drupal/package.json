@@ -1,0 +1,58 @@
+{
+  "name": "@jsondrop/drupal",
+  "version": "0.0.0",
+  "description": "Drupal core entity types and helpers (decoupled_router, menus, views, images) for @jsondrop/core.",
+  "keywords": [
+    "drupal",
+    "jsonapi",
+    "decoupled",
+    "headless",
+    "typescript",
+    "decoupled_router"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Valentino Međimorec",
+    "url": "https://github.com/valicm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/valicm/jsondrop.git",
+    "directory": "packages/drupal"
+  },
+  "homepage": "https://github.com/valicm/jsondrop/tree/main/packages/drupal#readme",
+  "bugs": {
+    "url": "https://github.com/valicm/jsondrop/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "@jsondrop/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "peerDependencies": {
+    "@jsondrop/core": "^0"
+  },
+  "devDependencies": {
+    "@jsondrop/core": "*"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

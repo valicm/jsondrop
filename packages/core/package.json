@@ -1,0 +1,52 @@
+{
+  "name": "@jsondrop/core",
+  "version": "0.0.0",
+  "description": "A typed, framework-agnostic client for Drupal's JSON:API.",
+  "keywords": [
+    "drupal",
+    "jsonapi",
+    "json:api",
+    "decoupled",
+    "headless",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Valentino Međimorec",
+    "url": "https://github.com/valicm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/valicm/jsondrop.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/valicm/jsondrop/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/valicm/jsondrop/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "@jsondrop/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

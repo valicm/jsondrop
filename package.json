@@ -1,0 +1,32 @@
+{
+  "name": "jsondrop",
+  "private": true,
+  "type": "module",
+  "description": "TypeScript clients for Drupal's JSON:API, with Drupal core and Commerce types.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @jsondrop/core && npm run build -w @jsondrop/drupal && npm run build -w @jsondrop/commerce",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json && tsc -p examples/tsconfig.json",
+    "check": "npm run typecheck && npm test && npm run build",
+    "changeset": "changeset",
+    "release": "npm run check && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3",
+    "@types/node": "^22.20.5",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Valentino Međimorec",
+    "url": "https://github.com/valicm"
+  }
+}
