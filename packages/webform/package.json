@@ -1,6 +1,6 @@
 {
   "name": "@jsondrop/webform",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Webform for decoupled Drupal: a webform_rest client, a render-ready form model, and #states evaluation.",
   "keywords": [
     "drupal",
@@ -45,7 +45,7 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "peerDependencies": {
-    "@jsondrop/core": "^0.1.0"
+    "@jsondrop/core": "^0.1.1"
   },
   "devDependencies": {
     "@jsondrop/core": "*"
