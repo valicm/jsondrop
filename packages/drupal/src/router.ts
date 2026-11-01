@@ -41,12 +41,13 @@ type PathOptions = Pick<ResourceRequestOptions, 'locale' | 'auth' | 'headers' | 
  */
 export async function translatePath(client: JsonApiClient, path: string, options: PathOptions = {}): Promise<TranslatedPath | null> {
   try {
-    const response = await client.get(client.siteUrl('/router/translate-path', undefined, options.locale), {
+    const response = await client.get<TranslatedPath>(client.siteUrl('/router/translate-path', undefined, options.locale), {
       ...options,
       query: { params: { path, _format: 'json' } },
       headers: { Accept: 'application/json', ...headersObject(options.headers) },
+      parse: 'json',
     });
-    return response.document as unknown as TranslatedPath;
+    return response.data;
   }
   catch (error) {
     if (isJsonApiError(error) && error.status === 404) {

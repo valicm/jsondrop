@@ -9,6 +9,7 @@ built on `fetch`, runs in Node 20.19+, edge runtimes and browsers.
 | [`@jsondrop/core`](packages/core) | in progress | Client, query builder, deserializer, auth, type registry |
 | [`@jsondrop/drupal`](packages/drupal) | in progress | Drupal core entity types, decoupled_router, menus, views, images |
 | [`@jsondrop/commerce`](packages/commerce) | in progress | Commerce types; commerce_api cart, checkout and payment |
+| [`@jsondrop/webform`](packages/webform) | new | Webform via webform_rest: render-ready fields, `#states`, submit with validation errors |
 
 Targets Drupal 11 and later.
 

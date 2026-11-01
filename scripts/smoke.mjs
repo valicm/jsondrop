@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { buildQueryString, clientCredentials, JsonApiClient, OAuthClient } from '@jsondrop/core';
 import { buildMenuTree, fileUrl } from '@jsondrop/drupal';
 import { CommerceApi, commerceApiResourcePath, createCartToken } from '@jsondrop/commerce';
+import { fieldState, normalizeElements } from '@jsondrop/webform';
 
 const calls = [];
 const fetch = async (url, init = {}) => {
@@ -31,5 +32,9 @@ assert.equal(commerceApiResourcePath('product-variation--default'), '/product-va
 assert.match(createCartToken(), /^[0-9a-f-]{36}$/);
 assert.ok((await new OAuthClient({ baseUrl: 'https://cms.example.com', clientId: 'web', redirectUri: 'https://app/cb' }).startLogin()).url.includes('code_challenge='));
 assert.ok(new CommerceApi(drupal).withCartToken('t') instanceof CommerceApi);
+
+const [phone] = normalizeElements({ phone: { '#type': 'tel', '#states': { visible: { ':input[name="method"]': { value: 'phone' } } } } });
+assert.equal(fieldState(phone, { method: 'phone' }).visible, true);
+assert.equal(fieldState(phone, { method: 'email' }).visible, false);
 
 console.log(`Smoke test passed on Node ${process.version}`);

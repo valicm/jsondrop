@@ -1,0 +1,59 @@
+{
+  "name": "@jsondrop/webform",
+  "version": "0.0.0",
+  "description": "Webform for decoupled Drupal: a webform_rest client, a render-ready form model, and #states evaluation.",
+  "keywords": [
+    "drupal",
+    "webform",
+    "webform_rest",
+    "decoupled",
+    "headless",
+    "forms",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Valentino Međimorec",
+    "url": "https://github.com/valicm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/valicm/jsondrop.git",
+    "directory": "packages/webform"
+  },
+  "homepage": "https://github.com/valicm/jsondrop/tree/main/packages/webform#readme",
+  "bugs": {
+    "url": "https://github.com/valicm/jsondrop/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "@jsondrop/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "peerDependencies": {
+    "@jsondrop/core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@jsondrop/core": "*"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

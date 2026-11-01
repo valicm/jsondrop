@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @jsondrop/core && npm run build -w @jsondrop/drupal && npm run build -w @jsondrop/commerce",
+    "build": "npm run build -w @jsondrop/core && npm run build -w @jsondrop/drupal && npm run build -w @jsondrop/commerce && npm run build -w @jsondrop/webform",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json && tsc -p examples/tsconfig.json",

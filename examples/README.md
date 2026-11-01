@@ -16,6 +16,7 @@ site plugs in at one of these points:
 | Commerce endpoints of your modules, another payment flow | A `CommerceApi` subclass | [05](05-commerce-subclass.ts) |
 | A cart token in your framework's cookies | `withCartToken()` | [06](06-server-cart-token.ts) |
 | Users logging in (OAuth or Drupal session) | `OAuthClient` + `strategy(store)`, or `login()` + `sessionCookie()` | [07](07-user-login.ts) |
+| Webforms rendered by your frontend | `getWebform()`, `fieldState()`, `submitWebform()` | [08](08-webform.ts) |
 
 Read them in order:
 
@@ -34,6 +35,8 @@ Read them in order:
    the Next.js wiring.
 7. [User login](07-user-login.ts): OAuth with PKCE and refresh tokens,
    or a Drupal session; current user; logout.
+8. [Webform](08-webform.ts): a framework-free form controller with
+   conditional fields and per-field errors.
 
 The examples are typechecked with the packages (`npm run typecheck`), and
 [examples.test.ts](examples.test.ts) runs example 5's checkout against a

@@ -69,6 +69,13 @@ export interface RequestOptions {
   auth?: AuthStrategy | false;
   fetchOptions?: FetchOptions;
   signal?: AbortSignal;
+  /**
+   * How to read the response. `jsonapi` (default) deserializes a JSON:API
+   * document into `data`. `json` puts plain JSON in `data` as is, for
+   * Drupal's other endpoints (REST resources, user login). `text` puts the
+   * body text in `data` (`/session/token`).
+   */
+  parse?: 'jsonapi' | 'json' | 'text';
 }
 
 /** Options for the resource-level methods. */
@@ -354,8 +361,15 @@ export class JsonApiClient {
       const errors = document?.errors ?? (typeof message === 'string' ? [{ status: String(response.status), detail: message }] : []);
       throw new JsonApiError(response.status, errors, document, method, url);
     }
+    const mode = options.parse ?? 'jsonapi';
+    if (mode === 'text') {
+      return { status: response.status, headers: response.headers, document: {}, data: text as T, meta: {}, links: {} };
+    }
     if (text && document === null) {
-      throw new JsonApiError(response.status, [{ detail: `Expected a JSON:API document from ${method} ${url}, got ${response.headers.get('Content-Type') ?? 'no content type'}` }], null, method, url);
+      throw new JsonApiError(response.status, [{ detail: `Expected ${mode === 'json' ? 'JSON' : 'a JSON:API document'} from ${method} ${url}, got ${response.headers.get('Content-Type') ?? 'no content type'}` }], null, method, url);
+    }
+    if (mode === 'json') {
+      return { status: response.status, headers: response.headers, document: {}, data: (document ?? null) as T, meta: {}, links: {} };
     }
     const body = document ?? {};
     return {

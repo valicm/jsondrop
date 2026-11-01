@@ -49,12 +49,13 @@ const JSON_HEADERS = { 'Content-Type': 'application/json', Accept: 'application/
  * The error's `message` is Drupal's explanation.
  */
 export async function login(client: JsonApiClient, credentials: { name: string; pass: string }): Promise<SessionLogin> {
-  const response = await client.post(client.siteUrl('/user/login'), credentials, {
+  const response = await client.post<{ current_user?: SessionLogin['user']; csrf_token?: string; logout_token?: string } | null>(client.siteUrl('/user/login'), credentials, {
     auth: false,
     query: { params: { _format: 'json' } },
     headers: JSON_HEADERS,
+    parse: 'json',
   });
-  const body = response.document as unknown as { current_user?: SessionLogin['user']; csrf_token?: string; logout_token?: string };
+  const body = response.data ?? {};
   const cookie = sessionCookieOf(response.headers);
   if (!cookie) {
     throw new Error('Drupal answered the login without a session cookie. Log in from the server, not the browser.');
@@ -68,18 +69,35 @@ export async function logout(client: JsonApiClient, session: Pick<SessionLogin, 
     auth: sessionCookie(session.cookie),
     query: { params: { _format: 'json', token: session.logoutToken } },
     headers: JSON_HEADERS,
+    parse: 'json',
   });
 }
 
 /** Whether the session is still logged in (`/user/login_status`). */
 export async function isLoggedIn(client: JsonApiClient, cookie: string): Promise<boolean> {
-  const response = await client.get(client.siteUrl('/user/login_status'), {
+  const response = await client.get<number | string | null>(client.siteUrl('/user/login_status'), {
     auth: sessionCookie(cookie),
     query: { params: { _format: 'json' } },
     headers: JSON_HEADERS,
+    parse: 'json',
   });
   // Drupal answers a bare `1` or `0`.
-  return Number(response.document) === 1;
+  return Number(response.data) === 1;
+}
+
+/**
+ * A CSRF token (`/session/token`), for the `X-CSRF-Token` header that
+ * Drupal requires on writes to core REST resources (webform_rest, for
+ * one) when a session cookie authenticates them. Requests with a bearer
+ * token, or anonymous ones, do not need it.
+ */
+export async function getCsrfToken(client: JsonApiClient, cookie?: string): Promise<string> {
+  const response = await client.get<string>(client.siteUrl('/session/token'), {
+    auth: cookie ? sessionCookie(cookie) : false,
+    headers: { Accept: 'text/plain' },
+    parse: 'text',
+  });
+  return response.data.trim();
 }
 
 /**
@@ -91,6 +109,7 @@ export async function requestPasswordReset(client: JsonApiClient, account: { nam
     auth: false,
     query: { params: { _format: 'json' } },
     headers: JSON_HEADERS,
+    parse: 'json',
   });
 }
 
