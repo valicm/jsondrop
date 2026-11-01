@@ -1,6 +1,6 @@
 {
   "name": "@jsondrop/commerce",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Drupal Commerce types and a commerce_api client (cart, checkout, payment) for @jsondrop/core.",
   "keywords": [
     "drupal",
@@ -47,8 +47,8 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "peerDependencies": {
-    "@jsondrop/core": "^0",
-    "@jsondrop/drupal": "^0"
+    "@jsondrop/core": "^0.1.0",
+    "@jsondrop/drupal": "^0.1.0"
   },
   "devDependencies": {
     "@jsondrop/core": "*",
