@@ -141,14 +141,15 @@ export function clientCredentials(options: ClientCredentialsOptions): AuthStrate
     });
     cached = {
       token: token.access_token,
-      expiresAt: token.expires_in === undefined ? Number.POSITIVE_INFINITY : Date.now() + token.expires_in * 1000,
+      expiresAt: token.expires_in === undefined ? Number.POSITIVE_INFINITY : performance.now() + token.expires_in * 1000,
     };
     return cached.token;
   };
 
   const strategy = {
     async token(context: AuthContext): Promise<string> {
-      if (cached && cached.expiresAt - renewBeforeMs > Date.now()) {
+      // Not `Date.now()`: Next.js fails prerendering on it under Cache Components.
+      if (cached && cached.expiresAt - renewBeforeMs > performance.now()) {
         return cached.token;
       }
       pending ??= request(context).finally(() => {

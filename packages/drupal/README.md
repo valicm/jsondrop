@@ -39,8 +39,12 @@ declare module '@jsondrop/core' {
 }
 ```
 
-Field value types: `TextField`, `PathField`, `LinkField`, `FileUri`,
-`ImageMeta`, `FileMeta`, `DateRangeField`, `AddressField`.
+Field value types: `TextField`, `PathField`, `LinkField`, `CommentField`,
+`FileUri`, `ImageMeta`, `FileMeta`, `DateRangeField`, `AddressField`,
+`DateTimeString`, `DecimalString`.
+Field types with one property (`telephone`, `email`, `integer`, `boolean`, …)
+are plain values and need no type. `decimal` is a string, to keep its precision.
+A `map` field has no fixed shape: use `Record<string, unknown>`, or your own type.
 Standard-profile media types: `MediaImage`, `MediaDocument`, `MediaAudio`,
 `MediaVideo`, `MediaRemoteVideo`.
 
