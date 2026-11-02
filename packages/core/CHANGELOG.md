@@ -1,5 +1,11 @@
 # @jsondrop/core
 
+## 0.2.1
+
+### Patch Changes
+
+- 64a4743: Measure `durationMs` and the `clientCredentials` token lifetime with `performance.now()` instead of `Date.now()`, which fails prerendering in Next.js under Cache Components.
+
 ## 0.2.0
 
 ### Minor Changes
