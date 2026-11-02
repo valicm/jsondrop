@@ -17,6 +17,7 @@ site plugs in at one of these points:
 | A cart token in your framework's cookies | `withCartToken()` | [06](06-server-cart-token.ts) |
 | Users logging in (OAuth or Drupal session) | `OAuthClient` + `strategy(store)`, or `login()` + `sessionCookie()` | [07](07-user-login.ts) |
 | Webforms rendered by your frontend | `getWebform()`, `fieldState()`, `submitWebform()` | [08](08-webform.ts) |
+| Runtime validation of responses | The `schema` request option, with any Standard Schema | [09](09-validating-responses.ts) |
 
 Read them in order:
 
@@ -37,6 +38,8 @@ Read them in order:
    or a Drupal session; current user; logout.
 8. [Webform](08-webform.ts): a framework-free form controller with
    conditional fields and per-field errors.
+9. [Validating responses](09-validating-responses.ts): your own schemas,
+   telling a missing resource from a response you do not understand.
 
 The examples are typechecked with the packages (`npm run typecheck`), and
 [examples.test.ts](examples.test.ts) runs example 5's checkout against a

@@ -1,7 +1,8 @@
 import type { AuthStrategy } from './auth.js';
 import { deserialize } from './deserialize.js';
-import { JsonApiError } from './errors.js';
+import { JsonApiError, JsonApiSchemaError } from './errors.js';
 import { buildQueryString, type QueryInput } from './query.js';
+import { runSchema, type InferSchemaOutput, type StandardSchemaV1 } from './schema.js';
 import { serialize, type ResourceInput } from './serialize.js';
 import type { Document, Links, Meta, Resource, ResourceOf, ResourceType } from './types.js';
 
@@ -80,6 +81,17 @@ export interface RequestOptions {
 
 /** Options for the resource-level methods. */
 export type ResourceRequestOptions = Omit<RequestOptions, 'body' | 'rawBody'>;
+
+/**
+ * Validates a response on the request methods (`get`, `post`, `patch`,
+ * `delete`, `request`). Takes any Standard Schema (Zod, Valibot, ArkType, …)
+ * and runs on `data` after deserialization, so it describes the resource and
+ * not the JSON:API document. `data` becomes the schema's output, typed from
+ * it; a mismatch throws {@link JsonApiSchemaError}.
+ */
+export interface SchemaOption<S extends StandardSchemaV1 = StandardSchemaV1> {
+  schema: S;
+}
 
 /** A response: the raw document plus its deserialized primary data. */
 export interface JsonApiResponse<T> {
@@ -275,20 +287,28 @@ export class JsonApiClient {
 
   // Request methods: paths relative to the API prefix.
 
-  get<T = Resource | Resource[] | null>(path: string, options?: Omit<RequestOptions, 'body' | 'rawBody'>) {
-    return this.request<T>('GET', path, options);
+  get<S extends StandardSchemaV1>(path: string, options: Omit<RequestOptions, 'body' | 'rawBody'> & SchemaOption<S>): Promise<JsonApiResponse<InferSchemaOutput<S>>>;
+  get<T = Resource | Resource[] | null>(path: string, options?: Omit<RequestOptions, 'body' | 'rawBody'>): Promise<JsonApiResponse<T>>;
+  get(path: string, options?: Omit<RequestOptions, 'body' | 'rawBody'> & Partial<SchemaOption>): Promise<JsonApiResponse<unknown>> {
+    return this.execute('GET', path, options);
   }
 
-  post<T = Resource | Resource[] | null>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>) {
-    return this.request<T>('POST', path, { ...options, body });
+  post<S extends StandardSchemaV1>(path: string, body: unknown, options: Omit<RequestOptions, 'body'> & SchemaOption<S>): Promise<JsonApiResponse<InferSchemaOutput<S>>>;
+  post<T = Resource | Resource[] | null>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<JsonApiResponse<T>>;
+  post(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'> & Partial<SchemaOption>): Promise<JsonApiResponse<unknown>> {
+    return this.execute('POST', path, { ...options, body });
   }
 
-  patch<T = Resource | Resource[] | null>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>) {
-    return this.request<T>('PATCH', path, { ...options, body });
+  patch<S extends StandardSchemaV1>(path: string, body: unknown, options: Omit<RequestOptions, 'body'> & SchemaOption<S>): Promise<JsonApiResponse<InferSchemaOutput<S>>>;
+  patch<T = Resource | Resource[] | null>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<JsonApiResponse<T>>;
+  patch(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'> & Partial<SchemaOption>): Promise<JsonApiResponse<unknown>> {
+    return this.execute('PATCH', path, { ...options, body });
   }
 
-  delete<T = Resource | Resource[] | null>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>) {
-    return this.request<T>('DELETE', path, { ...options, body });
+  delete<S extends StandardSchemaV1>(path: string, body: unknown, options: Omit<RequestOptions, 'body'> & SchemaOption<S>): Promise<JsonApiResponse<InferSchemaOutput<S>>>;
+  delete<T = Resource | Resource[] | null>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<JsonApiResponse<T>>;
+  delete(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'> & Partial<SchemaOption>): Promise<JsonApiResponse<unknown>> {
+    return this.execute('DELETE', path, { ...options, body });
   }
 
   /**
@@ -298,7 +318,13 @@ export class JsonApiClient {
    * `baseUrl`, so links Drupal builds with an internal host (behind a
    * proxy) still work and credentials never leave the site.
    */
-  async request<T>(method: string, path: string, options: RequestOptions = {}): Promise<JsonApiResponse<T>> {
+  request<S extends StandardSchemaV1>(method: string, path: string, options: RequestOptions & SchemaOption<S>): Promise<JsonApiResponse<InferSchemaOutput<S>>>;
+  request<T>(method: string, path: string, options?: RequestOptions): Promise<JsonApiResponse<T>>;
+  request(method: string, path: string, options?: RequestOptions & Partial<SchemaOption>): Promise<JsonApiResponse<unknown>> {
+    return this.execute(method, path, options);
+  }
+
+  private async execute(method: string, path: string, options: RequestOptions & Partial<SchemaOption> = {}): Promise<JsonApiResponse<unknown>> {
     const url = /^https?:\/\//.test(path) ? this.sameOrigin(path, options.query) : this.url(path, options.query, options.locale);
     const auth = options.auth === false ? undefined : options.auth ?? this.options.auth;
 
@@ -306,7 +332,15 @@ export class JsonApiClient {
     if (sent.response.status === 401 && auth?.invalidate && auth.invalidate() !== false) {
       sent = await this.send(method, url, options, auth);
     }
-    return this.parse<T>(method, url, options, sent);
+    const response = this.parse<unknown>(method, url, options, sent);
+    if (!options.schema) {
+      return response;
+    }
+    const result = await runSchema(options.schema, response.data);
+    if ('issues' in result) {
+      throw new JsonApiSchemaError(response.status, result.issues, method, url);
+    }
+    return { ...response, data: result.value };
   }
 
   private async send(method: string, url: string, options: RequestOptions, auth: AuthStrategy | undefined): Promise<Sent> {
