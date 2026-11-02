@@ -79,6 +79,34 @@ alongside `data`, `meta`, `links`, `status` and `headers`.
 | `fetchOptions` | Passed to `fetch`, e.g. `{ next: { revalidate: 60, tags: ['node:1'] } }` |
 | `onResponse` | Called after each request, for logging |
 
+## Validating responses
+
+The request methods take a `schema`: any
+[Standard Schema](https://standardschema.dev) (Zod, Valibot, ArkType, …).
+jsondrop has no dependency on them and bundles no schemas, because your fields
+are specific to your site.
+
+```ts
+import { z } from 'zod';
+
+const { data } = await drupal.get(`/products/${id}`, {
+  schema: z.object({ id: z.string(), title: z.string() }),
+});
+// data: { id: string; title: string }
+```
+
+The schema runs on `data` after deserialization, so it describes the resource,
+not the JSON:API document. `data` becomes the schema's output, typed from it.
+A mismatch throws `JsonApiSchemaError` with `issues` (a `message` and `path`
+each). It is not a `JsonApiError`: the request succeeded and your site and
+schema disagree. It carries no response body; `onResponse` has already seen
+that. One bad item fails a whole collection. See
+[the example](https://github.com/valicm/jsondrop/blob/main/examples/09-validating-responses.ts)
+for a listing that skips bad items instead.
+
+The resource methods (`getResource`, `getCollection`, …) don't take a schema:
+their types come from the `ResourceTypes` registry.
+
 ## Users logging in (OAuth)
 
 `OAuthClient` runs simple_oauth 6.x's authorization code flow with PKCE
