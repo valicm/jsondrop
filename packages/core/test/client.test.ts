@@ -162,6 +162,23 @@ describe('JsonApiClient', () => {
     expect(onResponse).toHaveBeenCalledWith(expect.objectContaining({ method: 'GET', url: 'https://example.com/jsonapi/x', status: 404 }));
   });
 
+  it('times requests without reading the wall clock', async () => {
+    // Next.js fails prerendering on `Date.now()` under Cache Components.
+    const now = vi.spyOn(Date, 'now');
+    const onResponse = vi.fn();
+    const { fetch } = mockFetch(json({ data: null }));
+    try {
+      await client(fetch, { onResponse }).get('/x');
+      expect(now).not.toHaveBeenCalled();
+    }
+    finally {
+      now.mockRestore();
+    }
+    const durationMs = onResponse.mock.calls[0]?.[0].durationMs;
+    expect(Number.isInteger(durationMs)).toBe(true);
+    expect(durationMs).toBeGreaterThanOrEqual(0);
+  });
+
   it('pages through a collection on the site\'s own origin', async () => {
     const { fetch, calls } = mockFetch(
       json({ data: [article], links: { next: { href: 'http://internal:8080/jsonapi/node/test_article?page%5Boffset%5D=1&page%5Blimit%5D=1' } } }),
@@ -221,6 +238,32 @@ describe('clientCredentials', () => {
     const response = await client(fetch, { auth: clientCredentials({ clientId: 'id', clientSecret: 'secret' }) }).get('/a');
     expect(response.status).toBe(200);
     expect(calls.map((call) => call.headers.get('Authorization') ?? 'token')).toEqual(['token', 'Bearer t1', 'token', 'Bearer t2']);
+  });
+
+  it('renews shortly before expiry, without reading the wall clock', async () => {
+    // Next.js fails prerendering on `Date.now()` under Cache Components.
+    const wallClock = vi.spyOn(Date, 'now');
+    const clock = vi.spyOn(performance, 'now').mockReturnValue(1_000);
+    try {
+      let issued = 0;
+      const { fetch, calls } = mockFetch((call) => (call.url.endsWith('/oauth/token') ? token(`t${++issued}`)() : json({ data: null })(call)));
+      const api = client(fetch, { auth: clientCredentials({ clientId: 'id', clientSecret: 'secret', renewBeforeMs: 30_000 }) });
+      await api.get('/a');
+
+      // Issued at 1s for 300s, so it expires at 301s and renews from 271s.
+      clock.mockReturnValue(270_000);
+      await api.get('/b');
+      expect(calls.at(-1)!.headers.get('Authorization')).toBe('Bearer t1');
+
+      clock.mockReturnValue(272_000);
+      await api.get('/c');
+      expect(calls.at(-1)!.headers.get('Authorization')).toBe('Bearer t2');
+      expect(wallClock).not.toHaveBeenCalled();
+    }
+    finally {
+      wallClock.mockRestore();
+      clock.mockRestore();
+    }
   });
 
   it('reports a failed token request', async () => {

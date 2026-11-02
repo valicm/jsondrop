@@ -1,4 +1,5 @@
-import { JsonApiClient, type Resource } from '@jsondrop/core';
+import { JsonApiClient, type Resource, type ResourceStub } from '@jsondrop/core';
+import type { AddressField } from '@jsondrop/drupal';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import {
   checkoutStatus,
@@ -6,11 +7,23 @@ import {
   commerceApiResourcePath,
   createCartToken,
   withCommerceApi,
+  type Adjustment,
+  type CustomerProfile,
+  type Dimensions,
+  type Measurement,
   type Order,
   type OrderItem,
+  type OrderTotalAdjustment,
+  type PluginItemField,
+  type Price,
   type Product,
+  type Profile,
   type ProductVariation,
   type PromotionCoupon,
+  type RemoteIdField,
+  type Shipment,
+  type ShipmentItem,
+  type TaxNumberField,
 } from '../src/index.js';
 import { json, mockFetch } from '../../core/test/mock-fetch.js';
 
@@ -233,5 +246,43 @@ describe('naming', () => {
     const drupal = new JsonApiClient({ baseUrl: 'https://shop.example.com', fetch });
     expectTypeOf(drupal.getResource('commerce_product_variation--device', 'v1')).resolves.toEqualTypeOf<ProductVariation & Resource>();
     expectTypeOf(drupal.getResource('commerce_order--regular', 'o1')).resolves.toEqualTypeOf<Order & Resource>();
+  });
+});
+
+describe('field value types', () => {
+  it('match what JSON:API sends', () => {
+    expectTypeOf<keyof Measurement>().toEqualTypeOf<'number' | 'unit'>();
+    expectTypeOf<keyof Dimensions>().toEqualTypeOf<'length' | 'width' | 'height' | 'unit'>();
+    expectTypeOf<keyof ShipmentItem>().toEqualTypeOf<'order_item_id' | 'title' | 'quantity' | 'weight' | 'declared_value' | 'tariff_code'>();
+    expectTypeOf<keyof TaxNumberField>().toEqualTypeOf<'type' | 'value' | 'verification_state' | 'verification_timestamp' | 'verification_result'>();
+    expectTypeOf<keyof PluginItemField>().toEqualTypeOf<'target_plugin_id' | 'target_plugin_configuration'>();
+    expectTypeOf<keyof RemoteIdField>().toEqualTypeOf<'provider' | 'remote_id'>();
+  });
+
+  it('tell the adjustments field from order_total', () => {
+    expectTypeOf<Adjustment['percentage']>().toEqualTypeOf<string | null>();
+    expectTypeOf<OrderTotalAdjustment['percentage']>().toEqualTypeOf<number | null>();
+    expectTypeOf<OrderTotalAdjustment['total']>().toEqualTypeOf<Price>();
+    expectTypeOf<Order['order_total']['adjustments']>().toEqualTypeOf<OrderTotalAdjustment[]>();
+    expectTypeOf<Order['adjustments']>().toEqualTypeOf<Adjustment[] | undefined>();
+  });
+
+  it('are used by the entities', () => {
+    expectTypeOf<ProductVariation['weight']>().toEqualTypeOf<Measurement | null | undefined>();
+    expectTypeOf<ProductVariation['dimensions']>().toEqualTypeOf<Dimensions | null | undefined>();
+    expectTypeOf<OrderItem['adjustments']>().toEqualTypeOf<Adjustment[] | undefined>();
+    expectTypeOf<Shipment['items']>().toEqualTypeOf<ShipmentItem[] | undefined>();
+    expectTypeOf<CustomerProfile['tax_number']>().toEqualTypeOf<TaxNumberField | null | undefined>();
+    expectTypeOf<Order['billing_profile']>().toEqualTypeOf<Profile | ResourceStub | null | undefined>();
+    expectTypeOf<Shipment['shipping_profile']>().toEqualTypeOf<Profile | ResourceStub | null | undefined>();
+  });
+
+  it('type profiles of any bundle', () => {
+    const { fetch } = mockFetch(json({ data: null }));
+    const drupal = new JsonApiClient({ baseUrl: 'https://shop.example.com', fetch });
+    expectTypeOf(drupal.getResource('profile--customer', 'p1')).resolves.toEqualTypeOf<CustomerProfile>();
+    expectTypeOf(drupal.getResource('profile--customer_shipping', 'p1')).resolves.toEqualTypeOf<Profile & Resource>();
+    expectTypeOf<CustomerProfile['address']>().toEqualTypeOf<AddressField>();
+    expectTypeOf<Profile['address']>().toEqualTypeOf<AddressField | null | undefined>();
   });
 });

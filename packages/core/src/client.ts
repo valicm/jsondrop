@@ -354,7 +354,8 @@ export class JsonApiClient {
     }
     new Headers(options.headers).forEach((value, name) => headers.set(name, value));
 
-    const started = Date.now();
+    // Not `Date.now()`: Next.js fails prerendering on it under Cache Components.
+    const started = performance.now();
     const response = await this.fetchImpl(url, {
       ...this.options.fetchOptions,
       ...options.fetchOptions,
@@ -364,7 +365,7 @@ export class JsonApiClient {
       signal: options.signal,
     } as RequestInit);
     const text = await response.text();
-    return { response, text, durationMs: Date.now() - started };
+    return { response, text, durationMs: Math.round(performance.now() - started) };
   }
 
   private parse<T>(method: string, url: string, options: RequestOptions, sent: Sent): JsonApiResponse<T> {

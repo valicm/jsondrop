@@ -9,8 +9,10 @@ import {
   image,
   imageStyleUrl,
   translatePath,
+  type CommentField,
   type File,
   type ImageMeta,
+  type LinkField,
   type MenuLinkContent,
   type Node,
   type Term,
@@ -159,5 +161,13 @@ describe('files', () => {
   it('finds image style links', () => {
     expect(imageStyleUrl({ links: { large: { href: 'https://cms.example.com/styles/large/a.jpg' } } }, 'large')).toBe('https://cms.example.com/styles/large/a.jpg');
     expect(imageStyleUrl({}, 'large')).toBeNull();
+  });
+});
+
+describe('field value types', () => {
+  it('match what JSON:API sends', () => {
+    expectTypeOf<keyof LinkField>().toEqualTypeOf<'uri' | 'resolvable_uri' | 'title' | 'options'>();
+    expectTypeOf<keyof CommentField>().toEqualTypeOf<'status' | 'cid' | 'last_comment_timestamp' | 'last_comment_name' | 'last_comment_uid' | 'comment_count'>();
+    expectTypeOf<CommentField['last_comment_timestamp']>().toEqualTypeOf<number>();
   });
 });

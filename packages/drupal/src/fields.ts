@@ -1,13 +1,25 @@
 /**
  * Field value shapes, as Drupal 11's JSON:API normalizes core field types.
  *
- * Dates (`created`, `changed`, datetime fields) arrive as ISO 8601 strings.
+ * A field type with one property arrives as a plain value, so these need no
+ * type of their own: `string`, `string_long`, `email`, `telephone`, `uri`,
+ * `uuid`, `language`, `list_string` are strings, `integer`, `float`,
+ * `list_integer`, `list_float` are numbers, and `boolean` is a boolean.
+ *
+ * Dates (`created`, `changed`, `timestamp`, datetime fields) arrive as ISO 8601
+ * strings. `decimal` is a string: see {@link DecimalString}.
  */
 
-/** ISO 8601 date-time string, e.g. `2026-10-31T12:00:00+00:00`. */
+/**
+ * ISO 8601 string, e.g. `2026-10-31T12:00:00+00:00`, or `2026-10-31` for a
+ * datetime or daterange field that stores dates only.
+ */
 export type DateTimeString = string;
 
-/** `text_long`, `text_with_summary` (`summary` only on the latter). */
+/** A `decimal` field: a string, to keep its precision, e.g. `"12.50"`. */
+export type DecimalString = string;
+
+/** `text`, `text_long`, `text_with_summary` (`summary` only on the latter). */
 export interface TextField {
   value: string;
   format: string | null;
@@ -27,8 +39,24 @@ export interface PathField {
 export interface LinkField {
   /** `internal:/…`, `entity:node/1`, `route:<nolink>` or an external URL. */
   uri: string;
+  /** Computed by Drupal from `uri`: the URL to put in an `href`. Read-only. */
+  resolvable_uri: string;
   title: string | null;
   options: Record<string, unknown>;
+}
+
+/** The `comment` field type: a summary of the entity's comments. */
+export interface CommentField {
+  /** `0` hidden, `1` closed, `2` open. */
+  status: 0 | 1 | 2;
+  /** The latest comment's ID, `0` without comments. */
+  cid: number;
+  /** Unix seconds, unlike other dates. */
+  last_comment_timestamp: number;
+  /** The author's name, when they are anonymous. */
+  last_comment_name: string | null;
+  last_comment_uid: number | null;
+  comment_count: number;
 }
 
 /** The file field's `uri`: the stream URI and its (root-relative) URL. */

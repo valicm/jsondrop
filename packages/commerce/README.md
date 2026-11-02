@@ -44,6 +44,17 @@ const products = await drupal.getCollection('product--default', { query: { inclu
 products[0].variations; // ProductVariation[], with resolved_price
 ```
 
+Field value types: `Price`, `Adjustment`, `OrderTotal`, `OrderTotalAdjustment`,
+`OrderProfile`, `PaymentInstrument`, `Measurement`, `Dimensions`,
+`ShipmentItem`, `TaxNumberField`, `PluginItemField`, `RemoteIdField`.
+
+**Addresses on orders.** A profile holds the address. commerce_api hides the
+order's reference to it and exposes `billing_information` and
+`shipping_information` instead, so read and write those. A profile's
+`field_phone` arrives there as `phone`; extend `OrderProfile` for your own
+fields. For profile resources themselves, `profile--*` is a `Profile` and
+`profile--customer` a `CustomerProfile`.
+
 ## Cart and checkout
 
 ```ts

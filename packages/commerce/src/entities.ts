@@ -1,6 +1,6 @@
 import type { ResourceBase, ToMany, ToOne } from '@jsondrop/core';
 import type { AddressField, DateTimeString, PathField, User } from '@jsondrop/drupal';
-import type { OrderMeta, OrderProfile, OrderTotal, PaymentInstrument, Price, ShippingRate } from './fields.js';
+import type { Adjustment, Dimensions, Measurement, OrderMeta, OrderProfile, OrderTotal, PaymentInstrument, Price, ShipmentItem, ShippingRate, TaxNumberField } from './fields.js';
 
 /**
  * Drupal Commerce entity types, as commerce_api exposes them.
@@ -65,6 +65,10 @@ export interface ProductVariation<TBundle extends string = string> extends Resou
    * group), computed by commerce_api for the request's context.
    */
   resolved_price: Price;
+  /** On a shippable variation type, with commerce_shipping. */
+  weight?: Measurement | null;
+  /** On a variation type with the dimensions trait, with commerce_shipping. */
+  dimensions?: Dimensions | null;
   created: DateTimeString;
   changed: DateTimeString;
   product_id?: ToOne<Product>;
@@ -84,8 +88,15 @@ export interface Order<TBundle extends string = string> extends ResourceBase<`or
   state: string;
   total_price: Price | null;
   total_paid?: Price | null;
+  /** Not on commerce_api's cart and checkout routes: use `order_total.adjustments`. */
+  adjustments?: Adjustment[];
   order_total: OrderTotal;
   billing_information: OrderProfile | null;
+  /**
+   * The profile behind `billing_information`. commerce_api hides it; only
+   * present where JSON:API Extras enables it.
+   */
+  billing_profile?: ToOne<Profile>;
   /** With commerce_shipping. */
   shipping_information?: OrderProfile | null;
   /** The selected {@link ShippingRate} id. With commerce_shipping. */
@@ -112,6 +123,8 @@ export interface OrderItem<TBundle extends string = string> extends ResourceBase
   total_price: Price;
   adjusted_unit_price?: Price | null;
   adjusted_total_price?: Price | null;
+  /** Not on commerce_api's cart and checkout routes: use the order's `order_total.adjustments`. */
+  adjustments?: Adjustment[];
   locked: boolean;
   purchased_entity: ToOne<ProductVariation>;
   order_id?: ToOne<Order>;
@@ -127,7 +140,16 @@ export interface Shipment<TBundle extends string = string> extends ResourceBase<
   title?: string;
   state: string;
   amount: Price | null;
+  original_amount?: Price | null;
+  adjustments?: Adjustment[];
+  items?: ShipmentItem[];
+  weight?: Measurement | null;
   shipping_method?: unknown;
+  /**
+   * The profile behind the order's `shipping_information`. commerce_api hides
+   * it; only present where JSON:API Extras enables it.
+   */
+  shipping_profile?: ToOne<Profile>;
   tracking_code?: string | null;
 }
 
@@ -143,10 +165,25 @@ export interface Payment<TBundle extends string = string> extends ResourceBase<`
 /** An item of `GET /checkout/{order}/shipping-methods`. */
 export interface ShippingRateOption extends ResourceBase<'shipping-rate-option'>, Omit<ShippingRate, 'id'> {}
 
-/** A customer profile (not renamed: profile is not a Commerce entity). */
-export interface CustomerProfile extends ResourceBase<'profile--customer'> {
-  address: AddressField;
+/**
+ * A profile, which holds an address for an order or a customer's address book.
+ * Not renamed: profile is not a Commerce entity. Orders usually read it through
+ * `billing_information` and `shipping_information` instead.
+ */
+export interface Profile<TBundle extends string = string> extends ResourceBase<`profile--${TBundle}`> {
+  address?: AddressField | null;
   is_default?: boolean;
+  /** With commerce_tax. */
+  tax_number?: TaxNumberField | null;
+  status?: boolean;
+  created?: DateTimeString;
+  changed?: DateTimeString;
+  uid?: ToOne<User>;
+}
+
+/** The `customer` profile, which Commerce gives an address field. */
+export interface CustomerProfile extends Profile<'customer'> {
+  address: AddressField;
 }
 
 declare module '@jsondrop/core' {
@@ -166,6 +203,7 @@ declare module '@jsondrop/core' {
     'order-item': OrderItem;
     shipment: Shipment;
     payment: Payment;
+    profile: Profile;
     // Drupal's naming, where JSON:API Extras keeps it.
     commerce_store: Store;
     commerce_product: Product;
