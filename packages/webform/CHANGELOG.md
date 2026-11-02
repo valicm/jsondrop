@@ -1,5 +1,12 @@
 # @jsondrop/webform
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [bd518de]
+  - @jsondrop/core@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes
