@@ -1,6 +1,6 @@
 {
   "name": "@jsondrop/commerce",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Drupal Commerce types and a commerce_api client (cart, checkout, payment) for @jsondrop/core.",
   "keywords": [
     "drupal",
