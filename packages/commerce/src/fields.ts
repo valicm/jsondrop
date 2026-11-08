@@ -108,6 +108,14 @@ export interface RemoteIdField {
   remote_id: string;
 }
 
+/** The `color_field_type` field type, from the Color Field module. */
+export interface ColorField {
+  /** In the field's format, `#HEXHEX` by default: `#d11515`. */
+  color: string;
+  /** From `0` to `1`; `null` when the field stores no opacity. */
+  opacity: number | null;
+}
+
 /** commerce_api's computed `payment_instrument`. */
 export interface PaymentInstrument {
   payment_gateway_id: string;

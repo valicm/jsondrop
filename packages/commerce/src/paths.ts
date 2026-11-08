@@ -36,6 +36,8 @@ export const COMMERCE_ENTITY_TYPES: readonly string[] = [
   // commerce_variation_bundle.
   'bundle-item',
   'bundle-item-type',
+  // commerce_promo_bar.
+  'promo-bar',
 ];
 
 /**

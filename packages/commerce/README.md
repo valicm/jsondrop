@@ -46,7 +46,8 @@ products[0].variations; // ProductVariation[], with resolved_price
 
 Field value types: `Price`, `Adjustment`, `OrderTotal`, `OrderTotalAdjustment`,
 `OrderProfile`, `PaymentInstrument`, `Measurement`, `Dimensions`,
-`ShipmentItem`, `TaxNumberField`, `PluginItemField`, `RemoteIdField`.
+`ShipmentItem`, `TaxNumberField`, `PluginItemField`, `RemoteIdField`,
+`ColorField`.
 
 **Addresses on orders.** A profile holds the address. commerce_api hides the
 order's reference to it and exposes `billing_information` and
@@ -145,6 +146,21 @@ const drupal = withCommerceApi(client, ['license', 'wishlist-item']);
 // or
 const commerce = new CommerceApi(client, { entityTypes: ['license'] });
 ```
+
+## Promo bars
+
+With [commerce_promo_bar](https://www.drupal.org/project/commerce_promo_bar),
+`promo-bar` is a `PromoBar`, at `/jsonapi/promo-bars`:
+
+```ts
+const bars = await drupal.getCollection('promo-bar');
+bars[0].body.processed; // the message, tokens not replaced
+```
+
+That is the entity as stored. Which promo bars a visitor sees (store, dates,
+roles, country, page) and the message with its tokens replaced come from the
+module's `loadVisible()` and body processor, which JSON:API does not expose:
+serve them from an endpoint of your own.
 
 ## Extending
 

@@ -8,6 +8,7 @@ import {
   createCartToken,
   withCommerceApi,
   type Adjustment,
+  type ColorField,
   type CustomerProfile,
   type Dimensions,
   type Measurement,
@@ -19,6 +20,7 @@ import {
   type Product,
   type Profile,
   type ProductVariation,
+  type PromoBar,
   type PromotionCoupon,
   type RemoteIdField,
   type Shipment,
@@ -75,6 +77,7 @@ describe('resource paths and types', () => {
     expect(commerceApiResourcePath('product--default')).toBe('/products/default');
     expect(commerceApiResourcePath('product-variation--t_shirt')).toBe('/product-variations/t_shirt');
     expect(commerceApiResourcePath('promotion-coupon')).toBe('/promotion-coupons');
+    expect(commerceApiResourcePath('promo-bar')).toBe('/promo-bars');
     expect(commerceApiResourcePath('node--article')).toBeUndefined();
     expect(commerceApiResourcePath('profile--customer')).toBeUndefined();
   });
@@ -87,6 +90,53 @@ describe('resource paths and types', () => {
     expectTypeOf(drupal.getResource('product-variation--default', 'v1')).resolves.toEqualTypeOf<ProductVariation & Resource>();
     expectTypeOf(drupal.getResource('promotion-coupon', 'c1')).resolves.toEqualTypeOf<PromotionCoupon>();
     expect(calls[0]!.url).toBe(`${BASE}/products/default?include=variations`);
+  });
+
+  it('reads promo bars', async () => {
+    const { fetch, calls } = mockFetch(json({
+      data: [{
+        type: 'promo-bar',
+        id: 'p1',
+        attributes: {
+          langcode: 'en',
+          label: 'Black Friday',
+          body: { value: '<p>Save [commerce_promotion:offer]</p>', format: 'full_html', processed: '<p>Save [commerce_promotion:offer]</p>', summary: '' },
+          background_color: { color: '#d11515', opacity: 1 },
+          text_color: { color: '#ffffff', opacity: null },
+          start_date: '2026-11-01T00:00:00+00:00',
+          end_date: null,
+          countdown_date: '2026-11-30T23:59:59+00:00',
+          countries: ['CH', 'DE'],
+          country_visibility: true,
+          pages: '<front>\n/bestsellers',
+          visibility: true,
+          dismissible: true,
+          weight: 0,
+          status: true,
+          created: '2026-10-01T10:00:00+00:00',
+          changed: '2026-10-02T10:00:00+00:00',
+        },
+        relationships: {
+          stores: { data: [{ type: 'store--online', id: 's1' }] },
+          customer_roles: { data: [] },
+          promotion_id: { data: null },
+          uid: { data: { type: 'user--user', id: 'u1' } },
+        },
+      }],
+    }));
+    const drupal = withCommerceApi(new JsonApiClient({ baseUrl: 'https://shop.example.com', fetch }));
+    const [bar] = await drupal.getCollection('promo-bar');
+    expectTypeOf(bar!).toEqualTypeOf<PromoBar>();
+    expect(calls[0]!.url).toBe(`${BASE}/promo-bars`);
+    expect(bar).toMatchObject({
+      label: 'Black Friday',
+      background_color: { color: '#d11515', opacity: 1 },
+      countries: ['CH', 'DE'],
+      stores: [{ type: 'store--online', id: 's1' }],
+      customer_roles: [],
+      promotion_id: null,
+    });
+    expectTypeOf(drupal.getResource('commerce_promo_bar--commerce_promo_bar', 'p1')).resolves.toEqualTypeOf<PromoBar>();
   });
 });
 
@@ -257,6 +307,7 @@ describe('field value types', () => {
     expectTypeOf<keyof TaxNumberField>().toEqualTypeOf<'type' | 'value' | 'verification_state' | 'verification_timestamp' | 'verification_result'>();
     expectTypeOf<keyof PluginItemField>().toEqualTypeOf<'target_plugin_id' | 'target_plugin_configuration'>();
     expectTypeOf<keyof RemoteIdField>().toEqualTypeOf<'provider' | 'remote_id'>();
+    expectTypeOf<keyof ColorField>().toEqualTypeOf<'color' | 'opacity'>();
   });
 
   it('tell the adjustments field from order_total', () => {
