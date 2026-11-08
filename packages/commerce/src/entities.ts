@@ -1,6 +1,6 @@
 import type { ResourceBase, ToMany, ToOne } from '@jsondrop/core';
-import type { AddressField, DateTimeString, PathField, User } from '@jsondrop/drupal';
-import type { Adjustment, Dimensions, Measurement, OrderMeta, OrderProfile, OrderTotal, PaymentInstrument, Price, ShipmentItem, ShippingRate, TaxNumberField } from './fields.js';
+import type { AddressField, DateTimeString, PathField, Role, TextField, User } from '@jsondrop/drupal';
+import type { Adjustment, ColorField, Dimensions, Measurement, OrderMeta, OrderProfile, OrderTotal, PaymentInstrument, Price, ShipmentItem, ShippingRate, TaxNumberField } from './fields.js';
 
 /**
  * Drupal Commerce entity types, as commerce_api exposes them.
@@ -186,10 +186,56 @@ export interface CustomerProfile extends Profile<'customer'> {
   address: AddressField;
 }
 
+/**
+ * A promo bar, from the commerce_promo_bar module: a message strip with its
+ * own colours, dates, and store, role, country and page restrictions.
+ *
+ * This is the entity as stored. Which promo bars a visitor sees is decided
+ * by the module's `loadVisible()`, and `body.processed` still holds its
+ * tokens: JSON:API exposes neither, so a site that shows promo bars serves
+ * them from an endpoint of its own.
+ */
+export interface PromoBar extends ResourceBase<'promo-bar' | 'commerce_promo_bar--commerce_promo_bar'> {
+  langcode: string;
+  default_langcode?: boolean;
+  label: string;
+  /** The message. Tokens are allowed and not replaced here. */
+  body: TextField;
+  background_color: ColorField;
+  text_color: ColorField;
+  start_date: DateTimeString;
+  end_date: DateTimeString | null;
+  /** Until when the countdown shows. */
+  countdown_date: DateTimeString | null;
+  /** Show in these countries only, or hide in them: see `country_visibility`. Empty for all. */
+  countries: string[];
+  /** `true` shows the promo bar in `countries`, `false` hides it there. */
+  country_visibility: boolean;
+  /** Paths, one per line; `*` is a wildcard and `<front>` the front page. */
+  pages: string | null;
+  /** `true` shows the promo bar on `pages`, `false` hides it there. */
+  visibility: boolean;
+  /** Visitors can close it; the browser remembers that. */
+  dismissible: boolean | null;
+  weight: number;
+  status: boolean;
+  created: DateTimeString;
+  changed: DateTimeString;
+  /** Empty for every store. */
+  stores: ToMany<Store>;
+  /** Empty for every role. */
+  customer_roles: ToMany<Role>;
+  /** The promotion its tokens read coupons and details from. */
+  promotion_id: ToOne<ResourceBase<'promotion' | `commerce_promotion--${string}`>>;
+  uid: ToOne<User>;
+}
+
 declare module '@jsondrop/core' {
   interface ResourceTypes {
     'promotion-coupon': PromotionCoupon;
     'commerce_promotion_coupon--commerce_promotion_coupon': PromotionCoupon;
+    'promo-bar': PromoBar;
+    'commerce_promo_bar--commerce_promo_bar': PromoBar;
     'shipping-rate-option': ShippingRateOption;
     'profile--customer': CustomerProfile;
   }
